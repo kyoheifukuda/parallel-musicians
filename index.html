@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Parallel Musicians</title>
+        <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <style type="text/css">
+      * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      body {
+      }
+
+      p {
+          margin-top: 30%;
+          text-align: center;
+          font-size: 22px;
+          color: #AAA;
+      }
+      canvas{
+        display: block;
+        margin: 0 auto;
+        position: absolute;
+        top:0;
+        left: 0;
+        z-index: 0;
+      }
+
+      .stage{
+        display: block;
+        margin: 0 auto;
+        position: relative;
+        z-index: 0;
+        width:1000px;
+        height:400px;
+      }
+
+      #bassman{
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        top:100px;
+        left: 100px;
+      }
+
+      #gtman{
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        top:100px;
+        left: 300px;
+      }
+
+      #beatman{
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        top:100px;
+        left: 500px;
+      }
+
+      #synthman{
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        top:100px;
+        left: 700px;
+      }
+
+      .musician{
+        z-index: 10;
+        background-color: rgba(0,180,176,0.3);
+        border-radius: 50%;
+        transition: all 1s ease;
+        -webkit-transition: all .8s ease;
+        -moz-transition: all .8s ease;
+        -o-transition: all .8s ease;
+      }
+
+      .musician:hover{
+        background-color: transparent;
+      }
+
+      .now_play{
+        background-color: transparent;
+      }
+
+      .subject{
+        text-align: center;
+        margin-top: 60px;
+      }
+
+      #everyone_play{
+        margin: 0 10px;
+        color: #008885;
+      }
+
+    </style>
+    </head>
+<body>
+
+    <div class="subject">Those musicians can play apart! Please click circles!</div>
+
+    <div class="stage">
+        <canvas id="canvas" width="1000" height="400"></canvas>
+        <span id="bassman" class="musician" onClick="bassman.play('bassman')"></span>
+        <span id="gtman" class="musician" onClick="gtman.play('gtman')"></span>
+        <span id="beatman" class="musician" onClick="beatman.play('beatman')"></span>
+        <span id="synthman" class="musician" onClick="synthman.play('synthman')"></span>
+    </div>
+
+    <div class="subject">Do you want to hear everyone's playing? Please click <span id="everyone_play" Onclick="everyone_play()">HERE!!</span></div>
+
+
+    <script type="text/javascript">
+    var context = new window.AudioContext(),
+        timeDomain = new Uint8Array(8);
+
+    var canvas = document.getElementById('canvas'),
+        ctx = canvas.getContext('2d');
+
+
+    function Rock(player, analyser, gain) {
+        this.player = player;
+        this.gainNode = context.createGain();
+        this.gainNode.gain.value = gain;
+        this.analyser = context.createAnalyser();
+        this.status = true;
+
+        this.render_on = function(x, y, color) {
+            this.analyser.getByteTimeDomainData(timeDomain);
+            var r = Math.abs(timeDomain[4])/2;
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI*2, false);
+            ctx.stroke();
+        };
+
+        this.connect = function(src) {
+            this.player = new Audio(src);
+            context.createMediaElementSource(this.player).connect(this.gainNode);
+            this.gainNode.connect(this.analyser);
+            this.analyser.connect(context.destination);
+        };
+
+        this.play = function(id) {
+
+            if(this.status){
+                document.getElementById(id).style.backgroundColor = "transparent";
+                this.player.play();
+                this.player.currentTime = 0;
+                this.status = false;
+            }else{
+                this.player.pause();
+                this.player.currentTime = 0;
+                this.status = true;
+            }
+
+        };
+
+        this.everyone_play = function() {
+            this.player.play();
+            this.player.currentTime = 0;
+        };
+
+        this.everyone_pause = function() {
+            this.player.pause();
+            this.player.currentTime = 0;
+        };
+
+    }
+
+    var bassman = new Rock("bassman","bassman_anl", "1.5");
+    bassman.connect("audio_src/bass.wav");
+
+    var gtman = new Rock("gtman","gtman_anl", "3");
+    gtman.connect("audio_src/gt.wav");
+
+    var beatman = new Rock("beatman","beatman_anl", "1.5");
+    beatman.connect("audio_src/beats.wav");
+
+    var synthman = new Rock("synthman","synthman_anl", "3");
+    synthman.connect("audio_src/synth.wav");
+
+    timer = setInterval( function(){
+        ctx.clearRect(0, 0, 1000, 500);
+        bassman.render_on(200, 200, "#00d1cc");
+        gtman.render_on(400, 200, "#00d1cc");
+        beatman.render_on(600, 200, "#00d1cc");
+        synthman.render_on(800, 200, "#00d1cc");
+    }, 10);
+
+
+    function everyone_play() {
+        bassman.play("bassman");
+        gtman.play("gtman");
+        beatman.play("beatman");
+        synthman.play("synthman");
+
+        bassman.currentTime = gtman.currentTime;
+        gtman.currentTime = beatman.currentTime;
+        beatman.currentTime = synthman.currentTime;
+        synthman.currentTime = bassman.currentTime;
+    }
+
+
+    function everyone_pause() {
+        bassman.pause();
+        gtman.pause();
+        beatman.pause();
+        synthman.pause();
+    }
+    </script>
+</body>
+</html>
