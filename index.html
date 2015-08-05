@@ -115,8 +115,14 @@
 
 
     <script type="text/javascript">
-    var context = new window.AudioContext(),
+
+var AudioContext = window.AudioContext || window.webkitAudioContext || false;
+if (AudioContext) {
+    var context = new AudioContext(),
         timeDomain = new Uint8Array(8);
+} else {
+    alert("Sorry, but the Web Audio API is not supported by your browser. Please, consider upgrading to the latest version or downloading Google Chrome or Mozilla Firefox");
+}
 
     var canvas = document.getElementById('canvas'),
         ctx = canvas.getContext('2d');
